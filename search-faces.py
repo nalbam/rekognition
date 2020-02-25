@@ -46,10 +46,10 @@ def main():
 
         s3.download_file(args.bucket_name, args.key, filepath)
 
-        img = cv2.imread(filepath, cv2.IMREAD_COLOR)
+        src = cv2.imread(filepath, cv2.IMREAD_COLOR)
 
-        height = img.shape[0]
-        width = img.shape[1]
+        height = src.shape[0]
+        width = src.shape[1]
 
         print(width, height)
 
@@ -68,12 +68,16 @@ def main():
             int(height * min(box["Top"] + box["Height"] + h, 100)),
         )
 
+        dst = src.copy()
+        dst = src[start[0] : (end[0] - start[0]), start[1] : (end[1] - start[1])]
+
         color = (255, 165, 20)
         thickness = 2
 
-        cv2.rectangle(img, start, end, color, thickness)
+        cv2.rectangle(src, start, end, color, thickness)
 
-        cv2.imwrite("{}.box.jpg".format(filepath), img)
+        cv2.imwrite("{}.src.jpg".format(filepath), src)
+        cv2.imwrite("{}.dst.jpg".format(filepath), dst)
 
 
 if __name__ == "__main__":
