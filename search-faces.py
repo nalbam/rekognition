@@ -69,7 +69,10 @@ def main():
         )
 
         dst = src.copy()
-        dst = src[start[0] : (end[0] - start[0]), start[1] : (end[1] - start[1])]
+        dst = src[start[0] : (start[1] - start[0]), end[1] : (end[1] - end[1])]
+        dst = src[100:600, 200:700]
+
+        cv2.imwrite("{}.dst.jpg".format(filepath), dst)
 
         color = (255, 165, 20)
         thickness = 2
@@ -77,7 +80,6 @@ def main():
         cv2.rectangle(src, start, end, color, thickness)
 
         cv2.imwrite("{}.src.jpg".format(filepath), src)
-        cv2.imwrite("{}.dst.jpg".format(filepath), dst)
 
 
 if __name__ == "__main__":
