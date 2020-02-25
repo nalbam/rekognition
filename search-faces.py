@@ -53,24 +53,15 @@ def main():
 
         print(width, height)
 
-        left = int(width * res["SearchedFaceBoundingBox"]["Left"])
-        top = int(height * res["SearchedFaceBoundingBox"]["Top"])
+        box = res["SearchedFaceBoundingBox"]
 
-        right = int(
-            width
-            * (
-                res["SearchedFaceBoundingBox"]["Left"]
-                + res["SearchedFaceBoundingBox"]["Width"]
-            )
-        )
+        rate = 0.03
 
-        bottom = int(
-            height
-            * (
-                res["SearchedFaceBoundingBox"]["Top"]
-                + res["SearchedFaceBoundingBox"]["Height"]
-            )
-        )
+        left = int(width * max(box["Left"] - rate, 0))
+        top = int(height * max(box["Top"] - rate, 0))
+
+        right = int(width * min(box["Left"] + box["Width"] + rate, 100))
+        bottom = int(height * min(box["Top"] + box["Height"] + rate, 100))
 
         start = (left, top)
         end = (right, bottom)
