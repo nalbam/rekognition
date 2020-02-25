@@ -55,16 +55,19 @@ def main():
 
         box = res["SearchedFaceBoundingBox"]
 
-        rate = 0.03
+        rate = 0.1
+        w = box["Width"] * rate
+        h = box["Height"] * rate
 
-        left = int(width * max(box["Left"] - rate, 0))
-        top = int(height * max(box["Top"] - rate, 0))
+        start = (
+            int(width * max(box["Left"] - w, 0)),
+            int(height * max(box["Top"] - h, 0)),
+        )
+        end = (
+            int(width * min(box["Left"] + box["Width"] + w, 100)),
+            int(height * min(box["Top"] + box["Height"] + h, 100)),
+        )
 
-        right = int(width * min(box["Left"] + box["Width"] + rate, 100))
-        bottom = int(height * min(box["Top"] + box["Height"] + rate, 100))
-
-        start = (left, top)
-        end = (right, bottom)
         color = (255, 165, 20)
         thickness = 2
 
