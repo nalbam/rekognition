@@ -18,6 +18,19 @@ def parse_args():
     return p.parse_args()
 
 
+def get_bounding_box(width, height, box, rate=0.1):
+    rw = box["Width"] * rate
+    rh = box["Height"] * rate
+
+    left = int(width * max(box["Left"] - rw, 0))
+    top = int(height * max(box["Top"] - rh, 0))
+
+    right = int(width * min(box["Left"] + box["Width"] + rw, 100))
+    bottom = int(height * min(box["Top"] + box["Height"] + rh, 100))
+
+    return left, top, right, bottom
+
+
 def main():
     args = parse_args()
 
@@ -48,36 +61,21 @@ def main():
 
         src = cv2.imread(filepath, cv2.IMREAD_COLOR)
 
-        height = src.shape[0]
-        width = src.shape[1]
-
-        print(width, height)
-
-        box = res["SearchedFaceBoundingBox"]
-
-        rate = 0.1
-        w = box["Width"] * rate
-        h = box["Height"] * rate
-
-        start = (
-            int(width * max(box["Left"] - w, 0)),
-            int(height * max(box["Top"] - h, 0)),
-        )
-        end = (
-            int(width * min(box["Left"] + box["Width"] + w, 100)),
-            int(height * min(box["Top"] + box["Height"] + h, 100)),
+        left, top, right, bottom = get_bounding_box(
+            src.shape[1], src.shape[0], res["SearchedFaceBoundingBox"]
         )
 
+        # crop
         dst = src.copy()
-        dst = src[start[0] : (start[1] - start[0]), end[1] : (end[1] - end[1])]
-        dst = src[100:600, 200:700]
+        dst = src[top:bottom, left:right]
 
         cv2.imwrite("{}.dst.jpg".format(filepath), dst)
 
+        # rectangle
         color = (255, 165, 20)
         thickness = 2
 
-        cv2.rectangle(src, start, end, color, thickness)
+        cv2.rectangle(src, (left, top), (right, bottom), color, thickness)
 
         cv2.imwrite("{}.src.jpg".format(filepath), src)
 
