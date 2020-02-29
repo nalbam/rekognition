@@ -1,20 +1,18 @@
 # rekognition
 
 ```bash
-export BUCKET_NAME=rekognition-nalbam-demo
-export COLLECTION_ID=rekognition-nalbam-demo
+export STORAGE_NAME=rekognition-nalbam-demo
 
-aws s3 mb s3://$BUCKET_NAME
-aws rekognition create-collection --collection-id $COLLECTION_ID | jq .
+aws s3 mb s3://$STORAGE_NAME
+aws rekognition create-collection --collection-id $STORAGE_NAME | jq .
 ```
 
 ```bash
-aws rekognition create-collection --collection-id $COLLECTION_ID  | jq .
+aws rekognition create-collection --collection-id $STORAGE_NAME  | jq .
 
-aws rekognition search-faces-by-image --collection-id $COLLECTION_ID \
+aws rekognition search-faces-by-image --collection-id $STORAGE_NAME \
 --image-bytes fileb://images/iu.jpg | jq .
 
 aws rekognition search-faces-by-image --collection-id doorman --region ap-northeast-1 \
 --image-bytes fileb://images/nalbam.jpg | jq .
-
 ```

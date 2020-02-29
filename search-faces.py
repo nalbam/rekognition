@@ -1,21 +1,50 @@
 import argparse
 import boto3
 import cv2
+import datetime
+import hashlib
 import json
 import os
-import datetime
 
 
-BUCKET_NAME = os.environ["BUCKET_NAME"]
-COLLECTION_ID = os.environ["COLLECTION_ID"]
+STORAGE_NAME = os.environ["STORAGE_NAME"]
+
+LINE_COLOR = (255, 165, 20)
+LINE_WIDTH = 2
 
 
 def parse_args():
     p = argparse.ArgumentParser(description="rekognition demo")
-    p.add_argument("--bucket-name", default=BUCKET_NAME, help="bucket name")
-    p.add_argument("--collection-id", default=COLLECTION_ID, help="collection id")
+    p.add_argument("--bucket-name", default=STORAGE_NAME, help="bucket name")
+    p.add_argument("--collection-id", default=STORAGE_NAME, help="collection id")
     p.add_argument("--key", default="nalbam.jpg", help="key")
     return p.parse_args()
+
+
+def crop(src_path, dst_path, box):
+    src = cv2.imread(src_path, cv2.IMREAD_COLOR)
+
+    left, top, right, bottom = get_bounding_box(src.shape[1], src.shape[0], box)
+
+    # crop
+    dst = src.copy()
+    dst = src[top:bottom, left:right]
+
+    cv2.imwrite("{}.dst.jpg".format(dst_path), dst)
+
+
+def rectangle(src_path, dst_path, box):
+    src = cv2.imread(src_path, cv2.IMREAD_COLOR)
+
+    left, top, right, bottom = get_bounding_box(src.shape[1], src.shape[0], box)
+
+    # rectangle
+    color = LINE_COLOR
+    thickness = LINE_WIDTH
+
+    cv2.rectangle(src, (left, top), (right, bottom), color, thickness)
+
+    cv2.imwrite(dst_path, src)
 
 
 def get_bounding_box(width, height, box, rate=0.1):
@@ -54,30 +83,19 @@ def main():
     print(res)
 
     if res["SearchedFaceConfidence"] > 99:
-        filename = datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S.%f") + ".jpg"
-        filepath = "build/{}".format(filename)
+        dt = datetime.datetime.utcnow().strftime("%Y%m%d-%H%M%S.%f")
 
-        s3.download_file(args.bucket_name, args.key, filepath)
+        hashkey = hashlib.md5(dt).hexdigest()
 
-        src = cv2.imread(filepath, cv2.IMREAD_COLOR)
+        src_path = "{}/{}-{}.jpg".format("build", hashkey, "src")
+        crp_path = "{}/{}-{}.jpg".format("build", hashkey, "crp")
+        box_path = "{}/{}-{}.jpg".format("build", hashkey, "box")
 
-        left, top, right, bottom = get_bounding_box(
-            src.shape[1], src.shape[0], res["SearchedFaceBoundingBox"]
-        )
+        s3.download_file(args.bucket_name, args.key, src_path)
 
-        # crop
-        dst = src.copy()
-        dst = src[top:bottom, left:right]
+        crop(src_path, crp_path, res["SearchedFaceBoundingBox"])
 
-        cv2.imwrite("{}.dst.jpg".format(filepath), dst)
-
-        # rectangle
-        color = (255, 165, 20)
-        thickness = 2
-
-        cv2.rectangle(src, (left, top), (right, bottom), color, thickness)
-
-        cv2.imwrite("{}.src.jpg".format(filepath), src)
+        rectangle(src_path, box_path, res["SearchedFaceBoundingBox"])
 
 
 if __name__ == "__main__":
